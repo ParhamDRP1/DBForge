@@ -89,6 +89,9 @@ namespace DSNForge.Core
         [Browsable(false)] public string Id { get; set; } = Guid.NewGuid().ToString("N");
         [Category("01 · Task")] public string ConnectionProfileId { get; set; } = "";
         [Category("02 · File")] public string MetadataFile { get; set; } = "";
+        [Category("02 · File"), Description("Import layout/encoding/header/NULL defaults from dbmeta unless already reviewed in the wizard. Disable for a completely manual layout.")]
+        public bool UseMetadataLayout { get; set; } = true;
+        [Browsable(false)] public bool MetadataApplied { get; set; }
         [Category("03 · LOAD")]
         public bool CreateTableIfMissing
         {

@@ -71,6 +71,7 @@ namespace DSNForge.Core
         }
         public void Apply(TransferStep s)
         {
+            s.MetadataApplied = true;
             s.Columns = ConnectionProfile.JsonCopy(Columns);
             s.LocalCodePage = CodePage;
             s.Delimiter = Delimiter;
@@ -90,6 +91,13 @@ namespace DSNForge.Core
                 if (Dataset != null)
                     s.Dataset = ConnectionProfile.JsonCopy(Dataset);
             }
+        }
+        public void ApplyDefaults(TransferStep s)
+        {
+            if (!s.UseMetadataLayout || s.MetadataApplied) return;
+            string script = s.CreateScript;
+            Apply(s);
+            if (!string.IsNullOrWhiteSpace(script)) s.CreateScript = script;
         }
     }
     public static class MetadataCatalog

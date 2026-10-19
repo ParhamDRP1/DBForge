@@ -59,7 +59,9 @@ namespace DSNForge.Desktop
             foreach (var task in project.Steps.Where(s => s.Enabled))
             {
                 form.Controls.Add(Ui.Label(task.Name + " · runtime parameters"));
-                form.Controls.Add(new PropertyGrid { Width = 1110, Height = 190, SelectedObject = new PropertyView(task, "ConnectionProfileId", "Name"), HelpVisible = true });
+                var taskOptions = new PropertyGrid { Width = 1110, Height = 260, SelectedObject = new PropertyView(task, "ConnectionProfileId", "Name"), HelpVisible = true };
+                taskOptions.PropertyValueChanged += (sender, args) => { string key = args.ChangedItem.PropertyDescriptor?.Name; if (key == "LocalFile" || key == "MetadataFile") task.MetadataApplied = false; };
+                form.Controls.Add(taskOptions);
                 var zip = Ui.Text(300);
                 zip.UseSystemPasswordChar = true;
                 try

@@ -107,6 +107,8 @@ namespace DSNForge.Desktop
             Controls.Add(pages);
             Controls.Add(navigation);
             layoutSource = LayoutSource();
+            file.TextChanged += (sender, args) => Step.MetadataApplied = false;
+            metadataPath.TextChanged += (sender, args) => Step.MetadataApplied = false;
             Action refreshOperation = () => { var op = (Operation)operation.SelectedItem; query.Enabled = op == Operation.Unload; target.Enabled = op == Operation.Transfer; create.Enabled = op != Operation.Unload; };
             operation.SelectedIndexChanged += (sender, args) => refreshOperation();
             refreshOperation();
@@ -282,6 +284,7 @@ namespace DSNForge.Desktop
                 options.Refresh();
                 if (temp == null)
                     metadataPath.Text = path;
+                Step.MetadataApplied = true;
                 MessageBox.Show(this, "Metadata loaded. Review DDL, layout and target table before saving.\r\n" + string.Join("\r\n", m.Notes), "dbmeta");
             }
             catch (Exception ex) { MessageBox.Show(this, ex.Message, "Read metadata"); }

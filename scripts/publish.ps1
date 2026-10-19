@@ -1,4 +1,4 @@
-param([string]$GitHubCli = 'gh', [string]$Tag = 'v1.2')
+param([string]$GitHubCli = 'gh', [string]$Tag = 'v1.2.1')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $owner = 'ParhamDRP1'

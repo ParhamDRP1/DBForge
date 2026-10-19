@@ -22,10 +22,10 @@ The application is named **DSNForge**; its GitHub repository is **DBForge**.
 
 | Component | For | Release asset |
 |---|---|---|
-| **Desktop GUI** | Interactive project editing, validation and execution | `DSNForge-1.2.0-GUI-win-x64.zip` |
-| **Core library** | Integrating data movement into existing .NET Framework applications | `DSNForge-1.2.0-Library-net48.zip`, `DSNForge.Core.1.2.0.nupkg` |
-| **CLI** | Scripts, scheduled jobs and terminal workflows | `DSNForge-1.2.0-CLI-win-x64.zip` |
-| **Windows installer** | Per-user installation with shortcuts and uninstall support | `DSNForge-1.2.0-Setup-win-x64.exe` |
+| **Desktop GUI** | Interactive project editing, validation and execution | `DSNForge-1.2.1-GUI-win-x64.zip` |
+| **Core library** | Integrating data movement into existing .NET Framework applications | `DSNForge-1.2.1-Library-net48.zip`, `DSNForge.Core.1.2.1.nupkg` |
+| **CLI** | Scripts, scheduled jobs and terminal workflows | `DSNForge-1.2.1-CLI-win-x64.zip` |
+| **Windows installer** | Per-user installation with shortcuts and uninstall support | `DSNForge-1.2.1-Setup-win-x64.exe` |
 
 Get the packages from [Releases](https://github.com/ParhamDRP1/DBForge/releases). The NuGet package is distributed as a release asset; publication to nuget.org is not implied.
 
@@ -96,7 +96,7 @@ cd DBForge
 
 Builds use the .NET SDK and the .NET Framework 4.8 targeting pack. No database credentials or proprietary assemblies are needed for compilation or offline tests. Packaging creates separate component archives, a NuGet package, an Inno Setup installer, checksums, and a source/build manifest.
 
-The [GitHub Actions workflow](.github/workflows/build.yml) checks out the repository source, builds, tests, packages and attaches artifacts to version-tagged releases. [Release 1.2 notes](docs/releases/1.2.md) and [CHANGELOG.md](CHANGELOG.md) record the version history. Installers and application binaries are currently **unsigned**.
+The [GitHub Actions workflow](.github/workflows/build.yml) checks out the repository source, builds, tests, packages and attaches artifacts to version-tagged releases. [Release 1.2.1 notes](docs/releases/1.2.1.md) and [CHANGELOG.md](CHANGELOG.md) record the version history. Installers and application binaries are currently **unsigned**.
 
 ## Tested behavior and limits
 

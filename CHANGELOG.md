@@ -2,6 +2,13 @@
 
 Dates use ISO 8601. Source version `1.1.0` corresponds to release **1.1** / tag `v1.1`.
 
+## [1.2.1] — 2026-10-20
+
+- Apply CSV metadata defaults even when a catalog column layout already exists.
+- Preserve reviewed user overrides and offer a manual-layout opt-out.
+- Add regression coverage for metadata precedence (58 assertions total).
+- Supersede the source-only v1.2 tag before its release publication.
+
 ## [1.2.0] — 2026-10-20
 
 - Add modal task/run wizards and separate connection-profile management.

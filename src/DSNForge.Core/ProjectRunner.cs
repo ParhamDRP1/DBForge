@@ -96,8 +96,7 @@ namespace DSNForge.Core
                                 if (File.Exists(metaPath))
                                 {
                                     var meta = DbMetadata.Load(metaPath);
-                                    if (s.Columns.Count == 0)
-                                        meta.Apply(s);
+                                meta.ApplyDefaults(s);
                                     if (string.IsNullOrWhiteSpace(s.CreateScript))
                                         s.CreateScript = meta.CreateScript;
                                     if (!string.IsNullOrWhiteSpace(meta.LoadCards))

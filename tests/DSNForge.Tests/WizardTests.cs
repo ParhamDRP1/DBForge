@@ -89,6 +89,14 @@ static class WizardTests
         var imported = new TransferStep();
         DbMetadata.Load(unpacked + ".dbmeta").Apply(imported);
         check(imported.Input == LoadInput.GeneratedCards && imported.CsvNullToken == "\\N", "Metadata restores LOAD mode and NULL policy");
+        var existingLayout = new TransferStep { Columns = new List<TextColumn> { new TextColumn { Name = "STALE" } }, LocalCodePage = 1256, HasHeader = false };
+        var csvMetadata = new DbMetadata { Columns = new List<TextColumn> { new TextColumn { Name = "ACTUAL" } }, CodePage = 65001, HasHeader = true, NullToken = "\\N" };
+        csvMetadata.ApplyDefaults(existingLayout);
+        check(existingLayout.LocalCodePage == 65001 && existingLayout.HasHeader && existingLayout.CsvNullToken == "\\N" && existingLayout.Columns[0].Name == "ACTUAL", "Automatic metadata includes encoding/header/NULL even when a catalog layout already exists");
+        existingLayout.LocalCodePage = 1256; csvMetadata.ApplyDefaults(existingLayout);
+        check(existingLayout.LocalCodePage == 1256, "Previously reviewed metadata preserves user overrides");
+        var manualLayout = new TransferStep { UseMetadataLayout = false, LocalCodePage = 1256 }; csvMetadata.ApplyDefaults(manualLayout);
+        check(manualLayout.LocalCodePage == 1256 && !manualLayout.MetadataApplied, "Manual layout opt-out is respected");
         using (var z = new ZipOutputStream(File.Create(Path.Combine(directory, "traversal.zip"))))
         {
             z.PutNextEntry(new ZipEntry("../escape.csv"));

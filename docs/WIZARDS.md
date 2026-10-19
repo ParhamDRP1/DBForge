@@ -145,3 +145,5 @@ input requires environment-variable credentials. Do not automate password prompt
 ![Task wizard](../assets/task-wizard.png)
 
 ![Execution wizard](../assets/run-wizard.png)
+
+Metadata precedence: first-time LOAD imports layout, encoding, header and NULL settings together, even if the catalog was read first. After importing/reviewing metadata in the wizard, edited settings are retained. Set UseMetadataLayout=false for fully manual input settings.
