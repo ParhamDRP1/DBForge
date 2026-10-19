@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="DSNForge icon">
+  <rect width="256" height="256" rx="54" fill="#122841"/>
+  <path d="M60 79v96c0 17 30 30 68 30s68-13 68-30V79" fill="#123f52" stroke="#3ed6bd" stroke-width="10"/>
+  <ellipse cx="128" cy="79" rx="68" ry="30" fill="#1c5261" stroke="#3ed6bd" stroke-width="10"/>
+  <path d="M60 125c0 17 30 30 68 30s68-13 68-30" fill="none" stroke="#3ed6bd" stroke-width="9"/>
+  <path d="M26 111h62m-17-17 17 17-17 17M230 172h-62m17-17-17 17 17 17" fill="none" stroke="#ffbc66" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

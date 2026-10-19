@@ -1,0 +1,19 @@
+{
+  "FormatVersion": 1,
+  "Name": "Archive and copy example",
+  "Db2": {"Host": "db2.example.invalid", "Catalog": "DB2LOC", "User": "DB2USER", "Schema": "APP", "PackageCollection": "NULLID"},
+  "Ftp": {"Host": "ftp.example.invalid", "User": "FTPUSER", "Representation": 0, "SiteOptions": "RDW"},
+  "ReportDirectory": "reports",
+  "Steps": [
+    {
+      "Name": "Archive source table", "Operation": 1, "Table": "APP.SOURCE_TABLE",
+      "LocalFile": "output/source.native", "BatchRecords": 0,
+      "Dataset": {"Name": "MYUSER.DSNFORGE.{run}.{batch}", "AutoAllocate": true, "DeleteAfterSuccess": false}
+    },
+    {
+      "Name": "Copy to a compatible table", "Operation": 2, "Table": "APP.SOURCE_TABLE",
+      "TargetTable": "APP.TARGET_TABLE", "BatchRecords": 0,
+      "Dataset": {"Name": "MYUSER.DSNFORGE.{run}.{batch}", "AutoAllocate": true, "DeleteAfterSuccess": true}
+    }
+  ]
+}

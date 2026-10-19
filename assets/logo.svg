@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="240" viewBox="0 0 960 240" role="img" aria-label="DSNForge — mainframe data utilities">
+  <rect width="960" height="240" rx="24" fill="#122841"/>
+  <g transform="translate(28 28) scale(.72)">
+    <path d="M60 79v96c0 17 30 30 68 30s68-13 68-30V79" fill="#123f52" stroke="#3ed6bd" stroke-width="10"/>
+    <ellipse cx="128" cy="79" rx="68" ry="30" fill="#1c5261" stroke="#3ed6bd" stroke-width="10"/>
+    <path d="M60 125c0 17 30 30 68 30s68-13 68-30" fill="none" stroke="#3ed6bd" stroke-width="9"/>
+    <path d="M26 111h62m-17-17 17 17-17 17M230 172h-62m17-17-17 17 17 17" fill="none" stroke="#ffbc66" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="246" y="112" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="66" font-weight="700">DSNForge</text>
+  <text x="250" y="155" fill="#a6c4d8" font-family="Segoe UI,Arial,sans-serif" font-size="24">LOAD · UNLOAD · Transfer</text>
+  <text x="250" y="190" fill="#3ed6bd" font-family="Segoe UI,Arial,sans-serif" font-size="18" letter-spacing="2">MAINFRAME DATA. UNDER CONTROL.</text>
+</svg>

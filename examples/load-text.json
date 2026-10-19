@@ -1,0 +1,30 @@
+{
+  "FormatVersion": 1,
+  "Name": "Load synthetic text records",
+  "Db2": {
+    "Host": "db2.example.invalid", "Port": 446, "Catalog": "DB2LOC", "User": "DB2USER",
+    "Schema": "APP", "PackageCollection": "NULLID", "PcCodePage": 1256, "HostCcsid": 1208,
+    "ConnectTimeoutSeconds": 15, "UtilityTimeoutSeconds": 3600,
+    "PasswordEnvironmentVariable": "DSNFORGE_DB2_PASSWORD"
+  },
+  "Ftp": {
+    "Host": "ftp.example.invalid", "Port": 21, "User": "FTPUSER",
+    "PasswordEnvironmentVariable": "DSNFORGE_FTP_PASSWORD", "Passive": true,
+    "Representation": 0, "ExplicitTls": false, "TimeoutSeconds": 60,
+    "BufferBytes": 1048576, "Retries": 3
+  },
+  "ReportDirectory": "reports",
+  "Steps": [{
+    "Name": "Text CSV to an existing test table", "Enabled": true,
+    "Operation": 0, "Input": 1, "Table": "APP.TEXT_SAMPLE", "LocalFile": "sample.csv",
+    "LocalCodePage": 65001, "Delimiter": ",", "HasHeader": true, "BatchRecords": 10000,
+    "Disposition": 0, "LogWrites": true,
+    "Columns": [{"Name": "CODE", "MaxUtf8Bytes": 16}, {"Name": "LABEL", "MaxUtf8Bytes": 128}],
+    "Dataset": {
+      "Name": "MYUSER.DSNFORGE.{run}.{batch}", "AutoAllocate": true,
+      "DeleteAfterSuccess": false, "AllowOverwrite": false,
+      "RecordFormat": "FB", "RecordLength": 148, "BlockSize": 0,
+      "SpaceUnit": "CYL", "PrimarySpace": 5, "SecondarySpace": 5, "Unit": "SYSDA"
+    }
+  }]
+}

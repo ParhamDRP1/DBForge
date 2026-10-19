@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>DSNForge.Core</PackageId>
+    <Description>Db2 for z/OS LOAD, UNLOAD and dataset transfer engine for .NET Framework applications.</Description>
+    <PackageTags>db2;zos;dsnutilu;mainframe;load;unload;ftp</PackageTags>
+    <PackageProjectUrl>https://github.com/ParhamDRP1/DBForge</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Web.Extensions"/>
+    <Reference Include="System.Security"/>
+    <Reference Include="Microsoft.VisualBasic"/>
+    <None Include="..\..\docs\LIBRARY.md" Pack="true" PackagePath="README.md"/>
+    <None Include="..\..\assets\icon.png" Pack="true" PackagePath="icon.png"/>
+  </ItemGroup>
+</Project>

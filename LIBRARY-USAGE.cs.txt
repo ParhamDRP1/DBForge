@@ -1,0 +1,40 @@
+// Reference DSNForge.Core.dll from a .NET Framework 4.8 x64 application.
+// Microsoft Host Integration Server's MsDb2Client must be installed.
+using System;
+using System.Threading;
+using DSNForge.Core;
+
+var project = ProjectStore.Load(@"C:\Transfers\project.dsnforge.json");
+var errors = Validation.Check(project);
+if (errors.Count > 0)
+    throw new InvalidOperationException(string.Join(Environment.NewLine, errors));
+
+var credentials = new Credentials {
+    Db2Password = GetPasswordFromYourApplication(),
+    FtpPassword = GetFtpPasswordFromYourApplication()
+};
+// Alternatively: Credentials.FromEnvironment(project).
+var engine = new TransferEngine();
+engine.Progress += e => Console.WriteLine($"{e.Time:O} {e.Level} {e.Stage} {e.Message}");
+using (var stop = new CancellationTokenSource()) {
+    await engine.ValidateRemoteAsync(project, credentials, stop.Token);
+    var report = await engine.RunAsync(project, credentials, stop.Token);
+    Reports.Save(@"C:\Transfers\Reports", report);
+    // Inspect report.Status, each batch.ReturnCode and batch.UtilityId.
+    // OutcomeUnknown must be reconciled on DB2 before replaying a LOAD.
+}
+
+// Building a project programmatically:
+var p = new TransferProject { Name = "Monthly transfer", ReportDirectory = @"C:\Reports" };
+p.Steps.Add(new TransferStep {
+    Name = "Server-side copy",
+    Operation = Operation.Transfer,
+    Table = "APP.SOURCE_TABLE",
+    TargetTable = "APP.TARGET_TABLE", // pre-existing, compatible layout
+    Dataset = new DatasetSettings {
+        Name = "MYUSER.DSNFORGE.{run}.{batch}",
+        AutoAllocate = true,
+        DeleteAfterSuccess = true
+    }
+});
+ProjectStore.Save(@"C:\Transfers\monthly.json", p);
