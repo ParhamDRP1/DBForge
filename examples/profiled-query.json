@@ -1,0 +1,29 @@
+{
+  "FormatVersion": 2,
+  "Name": "Profiled CSV query export",
+  "ReportDirectory": "runs",
+  "Profiles": [
+    {
+      "Id": "example-mainframe",
+      "Name": "Example mainframe",
+      "Database": { "Host": "db2.example.invalid", "Catalog": "DB2LOC", "User": "DB2USER" },
+      "Ftp": { "Host": "ftp.example.invalid", "User": "FTPUSER" },
+      "DatabaseSecret": { "Mode": 0, "EnvironmentVariable": "DSNFORGE_DB2_PASSWORD" },
+      "FtpSecret": { "Mode": 2 }
+    }
+  ],
+  "Steps": [
+    {
+      "Name": "Export synthetic system row",
+      "ConnectionProfileId": "example-mainframe",
+      "Operation": 1,
+      "Table": "SYSIBM.SYSDUMMY1",
+      "UnloadQuery": "SELECT IBMREQD FROM SYSIBM.SYSDUMMY1 WITH UR",
+      "LocalFile": "query.csv",
+      "LocalCodePage": 65001,
+      "HasHeader": true,
+      "CompressOutput": true,
+      "ArchivePassword": { "Mode": 0, "EnvironmentVariable": "DSNFORGE_ZIP_PASSWORD" }
+    }
+  ]
+}

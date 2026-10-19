@@ -1,4 +1,4 @@
-param([string]$GitHubCli = 'gh')
+param([string]$GitHubCli = 'gh', [string]$Tag = 'v1.2')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $owner = 'ParhamDRP1'
@@ -21,9 +21,9 @@ try {
     }
     if ($LASTEXITCODE -ne 0) { throw 'Repository publication failed' }
     & $GitHubCli repo edit $repository --add-topic db2 --add-topic mainframe --add-topic zos --add-topic dotnet --add-topic winforms --add-topic ftp
-    git rev-parse --verify refs/tags/v1.1 *> $null
-    if ($LASTEXITCODE -ne 0) { git tag -a v1.1 -m 'DSNForge 1.1: public bilingual release, runtime provider loading, installer and component packages' }
-    git push origin v1.1
+    git rev-parse --verify "refs/tags/$Tag" *> $null
+    if ($LASTEXITCODE -ne 0) { git tag -a $Tag -m "DSNForge $Tag" }
+    git push origin $Tag
     if ($LASTEXITCODE -ne 0) { throw 'Tag push failed' }
     Write-Host "Source published. Follow the tagged-source build at https://github.com/$repository/actions"
     Write-Host 'The workflow creates the release only after build, tests and packaging succeed.'

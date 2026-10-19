@@ -29,6 +29,8 @@ class Program
             return 0;
         }
         var p = ProjectStore.Load(args[1]);
+        if (p.Profiles.Count > 0)
+            return RunProfiles(args[0], p);
         var errors = Validation.Check(p);
         foreach (var e in errors)
             Console.Error.WriteLine("ERROR " + e);
@@ -54,6 +56,70 @@ class Program
             var report = engine.RunAsync(p, Credentials.FromEnvironment(p), cancel.Token).GetAwaiter().GetResult();
             Console.WriteLine(report.Status);
             return report.Status.StartsWith("Completed") ? 0 : 1;
+        }
+    }
+    static string Password(string title)
+    {
+        if (Console.IsInputRedirected)
+            throw new InvalidOperationException("Runtime password required; configure an environment variable for unattended execution.");
+        Console.Write(title + ": ");
+        var value = new System.Text.StringBuilder();
+        while (true)
+        {
+            var key = Console.ReadKey(true);
+            if (key.Key == ConsoleKey.Enter)
+                break;
+            if (key.Key == ConsoleKey.Escape)
+                throw new OperationCanceledException();
+            if (key.Key == ConsoleKey.Backspace)
+            {
+                if (value.Length > 0)
+                    value.Length--;
+            }
+            else if (!char.IsControl(key.KeyChar))
+                value.Append(key.KeyChar);
+        }
+        Console.WriteLine();
+        return value.ToString();
+    }
+    static int RunProfiles(string command, TransferProject p)
+    {
+        if (command == "validate")
+        {
+            foreach (var profile in p.Profiles)
+                ProfileStore.Validate(profile);
+            foreach (var s in p.Steps)
+            {
+                MetadataCatalog.Identifier(s.Table);
+                if (!p.Profiles.Exists(x => x.Id == s.ConnectionProfileId))
+                    throw new InvalidDataException("Task profile not found: " + s.Name);
+                if (!string.IsNullOrWhiteSpace(s.UnloadQuery))
+                    MetadataCatalog.SelectQuery(s.UnloadQuery);
+            }
+            Console.WriteLine("Profile/task structure passed. Use preview for server validation; input layout is validated after ZIP/dbmeta preparation.");
+            return 0;
+        }
+        if (command != "run" && command != "preview")
+            throw new ArgumentException("Unknown command");
+        var options = new RunOptions { RequestArchivePassword = Password };
+        foreach (var profile in p.Profiles)
+        {
+            var c = profile.Resolve();
+            if (string.IsNullOrEmpty(c.Db2Password))
+                c.Db2Password = Password(profile.Name + " database password");
+            bool ftp = p.Steps.Exists(s => s.Enabled && s.ConnectionProfileId == profile.Id && string.IsNullOrEmpty(s.UnloadQuery) && !(s.Operation == Operation.Unload && s.UnloadFormat == UnloadFormat.Delimited) && (s.Operation != Operation.Load || s.Input != LoadInput.ExistingDataset));
+            if (command == "run" && ftp && string.IsNullOrEmpty(c.FtpPassword))
+                c.FtpPassword = Password(profile.Name + " FTP password");
+            options.Credentials[profile.Id] = c;
+        }
+        using (var cancel = new CancellationTokenSource())
+        {
+            Console.CancelKeyPress += (s, e) => { e.Cancel = true; cancel.Cancel(); };
+            var runner = new ProjectRunner();
+            runner.Progress += e => { if (e.Level != "TRACE") Console.WriteLine($"{e.Time:O} | {e.Level} | {e.Stage} | {e.Message}"); };
+            var result = runner.Run(p, options, command == "preview", cancel.Token);
+            Console.WriteLine(ProjectRunner.ReportText(result));
+            return result.Status.StartsWith("Completed") || result.Status == "PreviewPassed" ? 0 : 1;
         }
     }
 }

@@ -1,3 +1,5 @@
+> **Version 1.2:** See the [wizard and profile guide](WIZARDS.md) for the current GUI, `ProjectRunner`, metadata and ZIP workflows. The lower-level `TransferEngine` examples below remain supported.
+
 # Command-line interface
 
 Extract the CLI ZIP and keep its files together. The Microsoft provider is needed only

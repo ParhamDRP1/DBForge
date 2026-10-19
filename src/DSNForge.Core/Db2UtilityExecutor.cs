@@ -12,6 +12,14 @@ namespace DSNForge.Core
     }
     public class UtilityResult
     {
+        public bool RecordCountKnown
+        {
+            get; set;
+        }
+        public long? RejectedRecords
+        {
+            get; set;
+        }
         public int ReturnCode
         {
             get; set;
@@ -55,6 +63,8 @@ namespace DSNForge.Core
                     result.Direction = ParameterDirection.Output;
                     q.Parameters.Add(result);
                     long records = 0;
+                    bool known = false;
+                    long? rejected = null;
                     using (token.Register(() => { try { q.Cancel(); } catch { } }))
                     using (var r = q.ExecuteReader())
                     {
@@ -68,14 +78,20 @@ namespace DSNForge.Core
                                 log?.Invoke(new RunEvent { Stage = "DSNUTILU", Message = text.Trim() });
                                 var m = Regex.Match(text, @"(?:TOTAL NUMBER OF RECORDS LOADED|NUMBER OF RECORDS UNLOADED|NUMBER OF RECORDS)=\s*(\d+)");
                                 if (m.Success)
+                                {
                                     records = Math.Max(records, long.Parse(m.Groups[1].Value));
+                                    known = true;
+                                }
+                                var bad = Regex.Match(text, @"NUMBER OF RECORDS (?:DISCARDED|REJECTED)\s*=\s*(\d+)");
+                                if (bad.Success)
+                                    rejected = long.Parse(bad.Groups[1].Value);
                             }
                         } while (r.NextResult());
                     }
                     token.ThrowIfCancellationRequested();
                     if (result.Value == null || result.Value == DBNull.Value)
                         throw new InvalidOperationException("DSNUTILU did not return a status; outcome unknown");
-                    return new UtilityResult { ReturnCode = Convert.ToInt32(result.Value), Seconds = watch.Elapsed.TotalSeconds, Records = records };
+                    return new UtilityResult { ReturnCode = Convert.ToInt32(result.Value), Seconds = watch.Elapsed.TotalSeconds, Records = records, RecordCountKnown = known, RejectedRecords = rejected };
                 }
             }
         }

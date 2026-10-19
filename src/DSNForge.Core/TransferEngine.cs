@@ -127,6 +127,7 @@ namespace DSNForge.Core
                                     ftp.Download(ds, step.LocalFile, (n, t) => { br.Bytes = n; log(new RunEvent { Stage = "Download", Bytes = n, TotalBytes = t, Message = step.Name + " · " + n.ToString("N0") + " bytes" }); });
                                 }
                                 br.TransferSeconds += clock.Elapsed.TotalSeconds;
+                                File.Copy(cardsPath, step.LocalFile + ".load.txt", true);
                                 save();
                             }
                             else
@@ -152,7 +153,7 @@ namespace DSNForge.Core
         }
         static BatchResult NewBatch(RunReport r, TransferStep s, string ds)
         {
-            var b = new BatchResult { Step = s.Name, Dataset = ds, Status = "Pending", UtilityId = "DF" + Guid.NewGuid().ToString("N").Substring(0, 12).ToUpperInvariant() };
+            var b = new BatchResult { Step = s.Name, Operation = s.Operation, Dataset = ds, Status = "Pending", UtilityId = "DF" + Guid.NewGuid().ToString("N").Substring(0, 12).ToUpperInvariant() };
             r.Batches.Add(b);
             return b;
         }
@@ -168,6 +169,8 @@ namespace DSNForge.Core
             var result = utility.Execute(p.Db2, c.Db2Password, batch.UtilityId, cards, false, log, token);
             batch.ReturnCode = result.ReturnCode;
             batch.UtilitySeconds = result.Seconds;
+            batch.ConfirmedRecords = result.RecordCountKnown || result.Records > 0 ? (long?)result.Records : null;
+            batch.RejectedRecords = result.RejectedRecords;
             if (result.Records > 0)
             {
                 if (batch.Records > 0 && s.Operation == Operation.Load && batch.Records != result.Records)

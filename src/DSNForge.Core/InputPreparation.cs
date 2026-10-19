@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.VisualBasic.FileIO;
@@ -32,6 +33,7 @@ namespace DSNForge.Core
     }
     public static class InputPreparation
     {
+        static readonly Encoding StrictUtf8 = new UTF8Encoding(false, true);
         public static IEnumerable<PreparedBatch> Read(TransferStep s, string work, Action<RunEvent> log, CancellationToken token)
         {
             if (s.Input != LoadInput.CsvToUtf8Fixed)
@@ -79,8 +81,12 @@ namespace DSNForge.Core
                 }
                 yield break;
             }
-            var encoding = Encoding.GetEncoding(s.LocalCodePage, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback);
-            using (var parser = new TextFieldParser(s.LocalFile, encoding, true))
+            bool mixed = s.Columns.Any(c => c.CodePage != 0 && c.CodePage != s.LocalCodePage);
+            if (mixed && s.Columns.Select(c => c.CodePage == 0 ? s.LocalCodePage : c.CodePage).Any(cp => Encoding.GetEncoding(cp).GetString(new byte[] { 34, 44, 13, 10 }) != "\",\r\n"))
+                throw new InvalidDataException("Mixed column encodings require ASCII-compatible encodings");
+            var encoding = Encoding.GetEncoding(mixed ? 28591 : s.LocalCodePage, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback);
+            using (var input = OpenCsv(s.LocalFile, mixed))
+            using (var parser = new TextFieldParser(input, encoding, !mixed))
             {
                 parser.TextFieldType = FieldType.Delimited;
                 parser.SetDelimiters(s.Delimiter);
@@ -104,6 +110,9 @@ namespace DSNForge.Core
                             string[] values = parser.ReadFields();
                             if (values.Length != s.Columns.Count)
                                 throw new InvalidDataException("CSV column count mismatch at record " + (total + 1));
+                            if (mixed)
+                                for (int i = 0; i < values.Length; i++)
+                                    values[i] = Encoding.GetEncoding(s.Columns[i].CodePage == 0 ? s.LocalCodePage : s.Columns[i].CodePage, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback).GetString(encoding.GetBytes(values[i]));
                             byte[] record = Pack(s, values);
                             output.Write(record, 0, record.Length);
                             total++;
@@ -155,6 +164,17 @@ namespace DSNForge.Core
                 }
             }
         }
+        static Stream OpenCsv(string path, bool mixed)
+        {
+            var stream = File.OpenRead(path);
+            if (mixed)
+            {
+                var bom = new byte[3];
+                int n = stream.Read(bom, 0, 3);
+                stream.Position = n == 3 && bom[0] == 239 && bom[1] == 187 && bom[2] == 191 ? 3 : 0;
+            }
+            return stream;
+        }
         public static byte[] Pack(TransferStep s, string[] fields)
         {
             if (fields.Length != s.Columns.Count)
@@ -163,13 +183,30 @@ namespace DSNForge.Core
             int offset = 0;
             for (int i = 0; i < fields.Length; i++)
             {
-                byte[] value = new UTF8Encoding(false, true).GetBytes(fields[i]);
+                if (!s.Columns[i].Included)
+                    continue;
+                bool isNull = !string.IsNullOrEmpty(s.CsvNullToken) && fields[i] == s.CsvNullToken;
+                if (isNull && !s.Columns[i].Nullable)
+                    throw new InvalidDataException("NULL in non-nullable column " + s.Columns[i].Name);
+                string text = isNull ? "" : ProjectRunner.Trim(fields[i], s.Columns[i].Trim);
+                if (!isNull && !string.IsNullOrEmpty(s.CsvNullToken))
+                    text = text.Replace("\\\\", "\\");
+                byte[] value = StrictUtf8.GetBytes(text);
                 if (value.Length > s.Columns[i].MaxUtf8Bytes)
                     throw new InvalidDataException("Value exceeds UTF-8 byte width for " + s.Columns[i].Name);
-                record[offset] = (byte)(value.Length >> 8);
-                record[offset + 1] = (byte)value.Length;
-                Buffer.BlockCopy(value, 0, record, offset + 2, value.Length);
-                offset += s.Columns[i].MaxUtf8Bytes + 2;
+                int prefix = ControlBuilder.TextField(s.Columns[i]) ? 2 : 0;
+                if (prefix == 2)
+                {
+                    record[offset] = (byte)(value.Length >> 8);
+                    record[offset + 1] = (byte)value.Length;
+                }
+                else
+                    for (int j = 0; j < s.Columns[i].MaxUtf8Bytes; j++)
+                        record[offset + j] = 32;
+                Buffer.BlockCopy(value, 0, record, offset + prefix, value.Length);
+                offset += ControlBuilder.FieldBytes(s.Columns[i]);
+                if (!string.IsNullOrEmpty(s.CsvNullToken))
+                    record[offset++] = isNull ? (byte)255 : (byte)0;
             }
             return record;
         }

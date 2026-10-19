@@ -1,3 +1,5 @@
+> **Version 1.2:** See the [wizard and profile guide](WIZARDS.md) for the current GUI, `ProjectRunner`, metadata and ZIP workflows. The lower-level `TransferEngine` examples below remain supported.
+
 # User guide
 
 [Home](../README.md) · [راهنمای فارسی](USER-GUIDE.fa.md) · [CLI](CLI.md) · [Library](LIBRARY.md)

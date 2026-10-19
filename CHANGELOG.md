@@ -2,6 +2,18 @@
 
 Dates use ISO 8601. Source version `1.1.0` corresponds to release **1.1** / tag `v1.1`.
 
+## [1.2.0] — 2026-10-20
+
+- Add modal task/run wizards and separate connection-profile management.
+- Store independent DB2/FTP secrets via environment, Windows encryption or runtime prompts.
+- Support per-task profiles, cloning, runtime overrides and encrypted Remember.
+- Add catalog/SELECT layouts, editable dbmeta DDL and preservation of utility cards.
+- Add streaming CSV export, field encoding/trim/selection and NULL-aware LOAD packing.
+- Add AES ZIP, automatic detection, password retry and traversal-safe extraction.
+- Add ODBC/OLE DB/registered/custom provider adapters and a profile-aware library/CLI runner.
+- Export confirmed row statistics, rates, elapsed time and errors as text.
+- Read project format 1; save new projects as format 2.
+
 ## [1.1.0] — 2026-10-20
 
 ### Added

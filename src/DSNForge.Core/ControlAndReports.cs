@@ -36,6 +36,18 @@ namespace DSNForge.Core
     }
     public class BatchResult
     {
+        public Operation Operation
+        {
+            get; set;
+        }
+        public long? ConfirmedRecords
+        {
+            get; set;
+        }
+        public long? RejectedRecords
+        {
+            get; set;
+        }
         public string Step
         {
             get; set;
@@ -118,6 +130,7 @@ namespace DSNForge.Core
         public static string Dataset(TransferStep s, string run, int batch) => s.Dataset.Name.Replace("{run}", run).Replace("{batch}", "B" + batch.ToString("D6"));
         public static string Punch(string data)
         {
+            if (data == "{dataset}") return "{punch}";
             if (string.IsNullOrEmpty(data))
                 return "";
             var i = data.LastIndexOf('.');
@@ -125,7 +138,22 @@ namespace DSNForge.Core
             return data.Substring(0, i + 1) + (last.Length == 0 ? "P" : (last.StartsWith("P", StringComparison.OrdinalIgnoreCase) ? "Q" : "P") + last.Substring(1));
         }
         public static string Normalize(string cards) => Regex.Replace(cards, @"\r\n?|\n", " ").Trim();
-        public static int RecordBytes(TransferStep s) => s.Columns.Sum(x => checked(x.MaxUtf8Bytes + 2));
+        public static bool TextField(TextColumn c) => c.SqlType.StartsWith("CHAR", StringComparison.OrdinalIgnoreCase) || c.SqlType.StartsWith("VARCHAR", StringComparison.OrdinalIgnoreCase);
+        public static int FieldBytes(TextColumn c) => c.MaxUtf8Bytes + (TextField(c) ? 2 : 0);
+        public static int RecordBytes(TransferStep s) => s.Columns.Where(x => x.Included).Sum(x => checked(FieldBytes(x) + (string.IsNullOrEmpty(s.CsvNullToken) ? 0 : 1)));
+        static string FieldType(TextColumn c)
+        {
+            if (TextField(c))
+                return "VARCHAR MIXED";
+            string type = c.SqlType.Split('(')[0].Trim().ToUpperInvariant();
+            if (type == "SMALLINT" || type == "BIGINT")
+                type = "INTEGER";
+            if (type == "REAL" || type == "DOUBLE")
+                type = "FLOAT";
+            if (!new[] { "INTEGER", "DECIMAL", "FLOAT", "DATE", "TIME", "TIMESTAMP" }.Contains(type))
+                throw new InvalidDataException("Use native cards for unsupported CSV type " + c.SqlType);
+            return type + " EXTERNAL(" + c.MaxUtf8Bytes + ")";
+        }
         public static string Build(TransferStep s, string dataset, bool unload = false, int batch = 1)
         {
             var punch = Punch(dataset);
@@ -144,15 +172,16 @@ namespace DSNForge.Core
             {
                 int pos = 1;
                 var f = new List<string>();
-                foreach (var col in s.Columns)
+                foreach (var col in s.Columns.Where(x => x.Included))
                 {
-                    f.Add(col.Name + " POSITION(" + pos + ") VARCHAR MIXED");
-                    pos += col.MaxUtf8Bytes + 2;
+                    int indicator = pos + FieldBytes(col);
+                    f.Add(col.Name + " POSITION(" + pos + ") " + FieldType(col) + (string.IsNullOrEmpty(s.CsvNullToken) ? "" : " NULLIF(" + indicator + ":" + indicator + ")=X'FF'"));
+                    pos += FieldBytes(col) + (string.IsNullOrEmpty(s.CsvNullToken) ? 0 : 1);
                 }
                 fields = " (" + string.Join(",", f) + ")";
             }
             if (s.Input == LoadInput.GeneratedCards)
-                return Rebind(File.ReadAllText(s.GeneratedCardsFile), s, dataset, batch);
+                return Rebind(string.IsNullOrWhiteSpace(s.MetadataLoadCards) ? File.ReadAllText(s.GeneratedCardsFile) : s.MetadataLoadCards, s, dataset, batch);
             return Normalize("TEMPLATE DFIN DSN '" + dataset + "' DISP(SHR,KEEP,KEEP) LOAD DATA INDDN DFIN " + (s.Disposition == LoadDisposition.Replace && batch == 1 ? "REPLACE" : "RESUME YES") + " LOG " + (s.LogWrites ? "YES" : "NO") + " " + (s.Input == LoadInput.CsvToUtf8Fixed ? "UNICODE " : "") + s.UtilityOptions + " INTO TABLE " + s.Table + fields);
         }
         public static string Rebind(string cards, TransferStep s, string dataset, int batch = 1)
@@ -221,7 +250,7 @@ namespace DSNForge.Core
                     e.Add(prefix + "Output file already exists");
                 if (s.Operation == Operation.Load && s.Input == LoadInput.CsvToUtf8Fixed)
                 {
-                    if (s.Columns.Count == 0)
+                    if (!s.Columns.Any(x => x.Included))
                         e.Add(prefix + "CSV column layout required");
                     if (s.Columns.Any(x => x.MaxUtf8Bytes < 1 || x.MaxUtf8Bytes > 32704 || !Regex.IsMatch(x.Name ?? "", @"^[A-Za-z][\w#$@]*$")))
                         e.Add(prefix + "Invalid column layout");
@@ -238,7 +267,7 @@ namespace DSNForge.Core
                     e.Add(prefix + "Batching requires {batch} in dataset name");
                 if (s.Operation == Operation.Load && s.Input == LoadInput.NativeFile && s.BatchRecords > 0 && s.NativeRecordBytes < 1)
                     e.Add(prefix + "Native batching needs a fixed record width; otherwise set BatchRecords=0");
-                if (s.Input == LoadInput.GeneratedCards && !File.Exists(s.GeneratedCardsFile))
+                if (s.Input == LoadInput.GeneratedCards && string.IsNullOrWhiteSpace(s.MetadataLoadCards) && !File.Exists(s.GeneratedCardsFile))
                     e.Add(prefix + "Generated LOAD cards file missing");
                 if (s.Operation == Operation.Load && s.Input == LoadInput.NativeFile && string.IsNullOrWhiteSpace(s.ControlStatements))
                     e.Add(prefix + "Native file requires explicit LOAD cards; no layout is guessed");

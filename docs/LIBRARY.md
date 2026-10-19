@@ -1,3 +1,5 @@
+> **Version 1.2:** See the [wizard and profile guide](WIZARDS.md) for the current GUI, `ProjectRunner`, metadata and ZIP workflows. The lower-level `TransferEngine` examples below remain supported.
+
 # DSNForge.Core
 
 A .NET Framework 4.8 x64 library shared by the GUI and CLI. Install the release-hosted

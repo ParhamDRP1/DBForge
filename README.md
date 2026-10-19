@@ -22,19 +22,21 @@ The application is named **DSNForge**; its GitHub repository is **DBForge**.
 
 | Component | For | Release asset |
 |---|---|---|
-| **Desktop GUI** | Interactive project editing, validation and execution | `DSNForge-1.1.0-GUI-win-x64.zip` |
-| **Core library** | Integrating data movement into existing .NET Framework applications | `DSNForge-1.1.0-Library-net48.zip`, `DSNForge.Core.1.1.0.nupkg` |
-| **CLI** | Scripts, scheduled jobs and terminal workflows | `DSNForge-1.1.0-CLI-win-x64.zip` |
-| **Windows installer** | Per-user installation with shortcuts and uninstall support | `DSNForge-1.1.0-Setup-win-x64.exe` |
+| **Desktop GUI** | Interactive project editing, validation and execution | `DSNForge-1.2.0-GUI-win-x64.zip` |
+| **Core library** | Integrating data movement into existing .NET Framework applications | `DSNForge-1.2.0-Library-net48.zip`, `DSNForge.Core.1.2.0.nupkg` |
+| **CLI** | Scripts, scheduled jobs and terminal workflows | `DSNForge-1.2.0-CLI-win-x64.zip` |
+| **Windows installer** | Per-user installation with shortcuts and uninstall support | `DSNForge-1.2.0-Setup-win-x64.exe` |
 
 Get the packages from [Releases](https://github.com/ParhamDRP1/DBForge/releases). The NuGet package is distributed as a release asset; publication to nuget.org is not implied.
 
 ## What it does
 
+New in 1.2: [task/run wizards, saved connection profiles, encrypted credentials, metadata and protected ZIP](docs/WIZARDS.md).
+
 - **LOAD:** packed UTF-8 CSV, native files, existing datasets, and generated LOAD cards.
 - **UNLOAD:** native or delimited output, data download, and generated `SYSPUNCH` LOAD cards.
 - **Server-side transfer:** UNLOAD followed by LOAD into a compatible target table. The data dataset stays on the mainframe, avoiding a client-side data round trip.
-- **Saved projects:** ordered, multi-table workflows stored as JSON. Passwords are supplied separately.
+- **Saved projects:** ordered, multi-table workflows stored as JSON. Credentials use environment variables, Windows-encrypted Manual storage, or runtime prompts.
 - **Dataset management:** allocation, record format, record length, block size, space settings, unique run/batch names, and optional deletion after success.
 - **FTP controls:** binary/ASCII/EBCDIC representations, passive/active connections, explicit TLS, buffer size, timeout, retries, and server `SITE` options.
 - **Validation:** local configuration checks and server-side `DSNUTILU PREVIEW`.
@@ -46,18 +48,18 @@ Get the packages from [Releases](https://github.com/ParhamDRP1/DBForge/releases)
 ## Quick start
 
 1. Install the setup package or extract the GUI ZIP.
-2. Start `DSNForge.Desktop.exe` and configure **Connections** for your environment.
+2. Start `DSNForge.Desktop.exe`, open **Connections → Manage connection profiles**, then use **New task wizard**. See the [wizard guide](docs/WIZARDS.md).
 3. Add a LOAD, UNLOAD or TRANSFER task; choose its table, files and dataset policy.
 4. For text CSV input, define the column layout or use **Read table layout**.
-5. Run **Validate**, then **DB2 Preview**, then **Run project**.
-6. Inspect **Live events** and export the final report.
+5. Open **Validate / preview**, then **Run wizard**.
+6. Inspect the modal progress/error page and save the final text report.
 
-All defaults and examples use placeholders. The program does not create destination tables automatically. Start with a non-production table and a small representative file.
+All defaults and examples use placeholders. The wizard can create a missing target when explicitly enabled with reviewed DDL. Start with a non-production table and a small representative file.
 
 ## Requirements
 
 - Windows x64 with **.NET Framework 4.8**.
-- For live DB2 operations: a licensed, installed Microsoft Host Integration Server DB2 managed provider (`Microsoft.HostIntegration.MsDb2Client`) and its native dependencies.
+- For live DB2 operations: an installed x64 DB2 provider (Microsoft Host Integration Server, OLE DB, ODBC or compatible ADO.NET driver). See [provider profiles](docs/WIZARDS.md#connection-profiles).
 - A Db2 for z/OS host with `SYSPROC.DSNUTILU` configured and appropriate utility privileges.
 - FTP access to the required MVS datasets for upload/download tasks.
 
@@ -75,10 +77,10 @@ DSNForge.Cli.exe run project.json
 
 ```csharp
 var project = ProjectStore.Load("project.json");
-var engine = new TransferEngine();
+var engine = new ProjectRunner();
 engine.Progress += e => Console.WriteLine($"{e.Time:O} {e.Level} {e.Message}");
 var report = await engine.RunAsync(
-    project, Credentials.FromEnvironment(project), cancellationToken);
+    project, new RunOptions(), preview: false, cancellationToken);
 ```
 
 See the complete [library integration guide](docs/LIBRARY.md) and [CLI reference](docs/CLI.md).
@@ -94,14 +96,14 @@ cd DBForge
 
 Builds use the .NET SDK and the .NET Framework 4.8 targeting pack. No database credentials or proprietary assemblies are needed for compilation or offline tests. Packaging creates separate component archives, a NuGet package, an Inno Setup installer, checksums, and a source/build manifest.
 
-The [GitHub Actions workflow](.github/workflows/build.yml) checks out the repository source, builds, tests, packages and attaches artifacts to version-tagged releases. [Release 1.1 notes](docs/releases/1.1.md) and [CHANGELOG.md](CHANGELOG.md) record the version history. Installers and application binaries are currently **unsigned**.
+The [GitHub Actions workflow](.github/workflows/build.yml) checks out the repository source, builds, tests, packages and attaches artifacts to version-tagged releases. [Release 1.2 notes](docs/releases/1.2.md) and [CHANGELOG.md](CHANGELOG.md) record the version history. Installers and application binaries are currently **unsigned**.
 
 ## Tested behavior and limits
 
 Development integration testing on a Db2 10 for z/OS host covered PREVIEW, a 10,000-row UNLOAD, a server-side transfer, dataset cleanup, and CSV LOAD in two 5,000-row batches. All 21 fields of the test records were compared with the source, including Persian text. These are functional checks, not universal throughput benchmarks.
 
-- Jobs execute sequentially; a project has one DB2/FTP connection profile.
-- CSV packing targets CHAR/VARCHAR text columns. Typed or nullable native data needs suitable native/generated utility cards.
+- Jobs execute sequentially; each task selects a DB2/FTP connection profile.
+- CSV packing supports text, external numeric/date/time fields and explicit NULL markers. Advanced native types use generated cards; see [tested limits](docs/WIZARDS.md).
 - `BatchRecords` applies to LOAD. UNLOAD runs once per table/task.
 - DSNUTILU does not stream row-by-row progress through this interface. A heartbeat is not a completed-row estimate.
 - Cancelling a client request does **not** prove that the server utility stopped or rolled back.

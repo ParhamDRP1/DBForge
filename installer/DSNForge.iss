@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "1.1.0"
+  #define AppVersion "1.2.0"
 #endif
 #ifndef SourceRoot
   #define SourceRoot ".."
@@ -50,7 +50,7 @@ Name: "library"; Description: "Library integration example"; Types: full
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Shortcuts:"; Flags: unchecked; Components: gui
 
 [Files]
-Source: "{#SourceRoot}\release\DSNForge.Core.dll"; DestDir: "{app}"; Components: core; Flags: ignoreversion
+Source: "{#SourceRoot}\release\*.dll"; DestDir: "{app}"; Components: core; Flags: ignoreversion
 Source: "{#SourceRoot}\release\DSNForge.Desktop.exe*"; DestDir: "{app}"; Components: gui; Flags: ignoreversion
 Source: "{#SourceRoot}\release\DSNForge.Cli.exe*"; DestDir: "{app}"; Components: cli; Flags: ignoreversion
 Source: "{#SourceRoot}\LICENSE"; DestDir: "{app}"; Components: core; Flags: ignoreversion

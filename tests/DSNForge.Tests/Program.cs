@@ -68,6 +68,7 @@ class Tests
             Assert(ControlBuilder.Rebind(generated, s, "MYUSER.TEST.B000001").Contains("INTO TABLE APP.TEST"), "Rebind table");
             Assert(ControlBuilder.Rebind(generated, s, "MYUSER.TEST.B000001").Contains("INDDN DFIN"), "Rebind DD");
             n += EngineTests.Run(dir);
+            n += WizardTests.Run(dir);
             Console.WriteLine("PASS " + n + " assertions");
             return 0;
         }

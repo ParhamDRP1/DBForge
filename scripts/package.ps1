@@ -11,7 +11,7 @@ New-Item -ItemType Directory -Force $stage | Out-Null
 foreach ($component in @('GUI', 'CLI', 'Library')) {
     $target = Join-Path $stage $component
     New-Item -ItemType Directory -Force $target | Out-Null
-    Copy-Item -LiteralPath (Join-Path $root 'release\DSNForge.Core.dll') -Destination $target
+    Get-ChildItem -LiteralPath (Join-Path $root 'release') -Filter '*.dll' -File | Copy-Item -Destination $target
     if ($component -ne 'Library') {
         $exe = if ($component -eq 'GUI') { 'DSNForge.Desktop.exe' } else { 'DSNForge.Cli.exe' }
         Copy-Item -LiteralPath (Join-Path $root ('release\' + $exe)) -Destination $target

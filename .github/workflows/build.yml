@@ -46,4 +46,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $assets = (Get-ChildItem dist -File).FullName
-          gh release create $env:GITHUB_REF_NAME @assets --verify-tag --title "DSNForge 1.1" --notes-file docs/releases/1.1.md
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          gh release create $env:GITHUB_REF_NAME @assets --verify-tag --title "DSNForge $version" --notes-file "docs/releases/$version.md"

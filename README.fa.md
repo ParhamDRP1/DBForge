@@ -1,3 +1,5 @@
+> نسخهٔ ۱٫۲: [راهنمای فارسی ویزاردها، پروفایل اتصال، dbmeta و ZIP](docs/WIZARDS.fa.md)
+
 <p align="center"><img src="assets/logo.svg" alt="DSNForge" width="800"></p>
 
 [English](README.md) · **فارسی** · [راهنمای کامل فارسی](docs/USER-GUIDE.fa.md) · [تاریخچه تغییرات](CHANGELOG.md)
